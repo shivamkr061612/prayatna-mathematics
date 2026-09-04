@@ -75,7 +75,30 @@ body {
   bottom: 0;
   left: 0;
   z-index: 40;
-  transition: transform 0.25s ease-in-out;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  contain: layout paint;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 39;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.sidebar-backdrop.active {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-header {
@@ -144,7 +167,7 @@ body {
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   cursor: pointer;
   border: none;
   background: none;
@@ -158,15 +181,24 @@ body {
   gap: 12px;
 }
 
-.nav-item i {
+.nav-item i,
+.nav-item svg {
   width: 18px;
   height: 18px;
   color: var(--slate-500);
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .nav-item:hover {
   background-color: var(--slate-100);
   color: var(--slate-900);
+}
+
+.nav-item:hover i,
+.nav-item:hover svg {
+  color: var(--slate-800);
 }
 
 .nav-item.active {
@@ -175,7 +207,8 @@ body {
   font-weight: 600;
 }
 
-.nav-item.active i {
+.nav-item.active i,
+.nav-item.active svg {
   color: var(--primary);
 }
 
@@ -2254,6 +2287,9 @@ input:checked + .slider:before {
   <!-- 3. Protected Admin App Layout -->
   <div id="admin-dashboard-app" class="admin-layout" style="display: none;">
     
+    <!-- Mobile Backdrop Overlay -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+
     <!-- Sidebar -->
     <aside id="admin-sidebar" class="admin-sidebar">
       <div class="sidebar-header">
@@ -5408,10 +5444,33 @@ const deleteHomeworkModal = document.getElementById('delete-homework-modal');
 const homeworkAnalyticsModal = document.getElementById('homework-analytics-modal');
 const toastContainer = document.getElementById('toast-container');
 
-// Mobile Sidebar Toggle
+// Mobile Sidebar Toggle & Backdrop
+const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+window.openMobileSidebar = function() {
+  if (adminSidebar) adminSidebar.classList.add('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+};
+
+window.closeMobileSidebar = function() {
+  if (adminSidebar) adminSidebar.classList.remove('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+};
+
 if (sidebarToggleBtn) {
-  sidebarToggleBtn.addEventListener('click', () => {
-    adminSidebar.classList.toggle('open');
+  sidebarToggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (adminSidebar && adminSidebar.classList.contains('open')) {
+      closeMobileSidebar();
+    } else {
+      openMobileSidebar();
+    }
+  });
+}
+
+if (sidebarBackdrop) {
+  sidebarBackdrop.addEventListener('click', () => {
+    closeMobileSidebar();
   });
 }
 
@@ -5419,10 +5478,66 @@ if (sidebarToggleBtn) {
 document.querySelectorAll('.nav-item').forEach((item) => {
   item.addEventListener('click', () => {
     if (window.innerWidth <= 768) {
-      adminSidebar.classList.remove('open');
+      closeMobileSidebar();
     }
   });
 });
+
+// Safe Scoped Icon Rendering to PREVENT sidebar flickering & layout thrashing
+function freezeSidebarIcons() {
+  const sidebar = document.getElementById('admin-sidebar');
+  if (!sidebar || !window.lucide) return;
+  try {
+    if (window._rawLucideCreateIcons) {
+      window._rawLucideCreateIcons.call(window.lucide, { root: sidebar });
+    } else {
+      window.lucide.createIcons({ root: sidebar });
+    }
+    // Strip data-lucide from all sidebar elements so future calls NEVER touch the sidebar DOM
+    sidebar.querySelectorAll('[data-lucide]').forEach((el) => {
+      el.removeAttribute('data-lucide');
+    });
+  } catch (e) {
+    console.warn("Error freezing sidebar icons:", e);
+  }
+}
+
+// Global intelligent Lucide throttle & scoped proxy
+window._rawLucideCreateIcons = window.lucide ? window.lucide.createIcons : null;
+let lucideAnimationRequestId = null;
+
+if (window.lucide && window._rawLucideCreateIcons) {
+  window.lucide.createIcons = function(options) {
+    if (options && options.root) {
+      try {
+        window._rawLucideCreateIcons.call(window.lucide, options);
+      } catch (err) {}
+      return;
+    }
+    // Coalesce multiple global icon requests into a single animation frame on main content only
+    if (lucideAnimationRequestId) cancelAnimationFrame(lucideAnimationRequestId);
+    lucideAnimationRequestId = requestAnimationFrame(() => {
+      try {
+        const targetArea = document.querySelector('.admin-main') || document.body;
+        window._rawLucideCreateIcons.call(window.lucide, { root: targetArea });
+      } catch (err) {}
+    });
+  };
+}
+
+window.safeCreateIcons = function(container) {
+  if (!window.lucide) return;
+  try {
+    if (container && container instanceof HTMLElement) {
+      window.lucide.createIcons({ root: container });
+    } else {
+      const mainArea = document.querySelector('.admin-main') || document.body;
+      window.lucide.createIcons({ root: mainArea });
+    }
+  } catch (e) {
+    console.warn("Safe icon creation warning:", e);
+  }
+};
 
 // Toast notification helper
 function showToast(message, type = 'success') {
@@ -5440,9 +5555,7 @@ function showToast(message, type = 'success') {
   `;
   toastContainer.appendChild(toast);
   
-  if (window.lucide) {
-    lucide.createIcons();
-  }
+  safeCreateIcons(toast);
 
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -5475,7 +5588,7 @@ window.toggleGateCodeVisibility = function() {
     input.type = 'password';
     if (icon) icon.setAttribute('data-lucide', 'eye');
   }
-  if (window.lucide) lucide.createIcons();
+  safeCreateIcons(document.getElementById('admin-passcode-gate'));
 };
 
 window.submitAdminPasscode = function(event) {
@@ -5523,9 +5636,11 @@ function unlockAdminDashboard() {
     adminAvatarDisplay.textContent = '∑';
   }
 
-  if (window.lucide) {
-    lucide.createIcons();
-  }
+  // Freeze sidebar icons once so they NEVER blink or re-render
+  freezeSidebarIcons();
+
+  // Create initial icons for the main content
+  safeCreateIcons();
 
   // Subscribe to live Firebase Database once unlocked
   if (!hasInitializedDataListeners) {
@@ -5615,7 +5730,9 @@ function listenToStudentsData() {
 // Dashboard Filtering & Comprehensive Analytics (Part 8 Production Features)
 // -------------------------------------------------------------------------
 
-window.applyDashboardFilters = function() {
+let _dashFilterDebounceTimer = null;
+
+function _executeDashboardFiltersCalculation() {
   const selectedClass = dashFilterClass ? dashFilterClass.value : 'all';
   const selectedPrep = dashFilterPrep ? dashFilterPrep.value : 'all';
   const selectedPeriod = dashFilterPeriod ? dashFilterPeriod.value : 'all';
@@ -5804,13 +5921,25 @@ window.applyDashboardFilters = function() {
 
   // Render recent students table in dashboard
   renderDashboardRecentStudents(filteredStudents);
+}
+
+window.applyDashboardFilters = function(immediate = false) {
+  if (immediate) {
+    if (_dashFilterDebounceTimer) clearTimeout(_dashFilterDebounceTimer);
+    _executeDashboardFiltersCalculation();
+    return;
+  }
+  if (_dashFilterDebounceTimer) clearTimeout(_dashFilterDebounceTimer);
+  _dashFilterDebounceTimer = setTimeout(() => {
+    _executeDashboardFiltersCalculation();
+  }, 25);
 };
 
 window.resetDashboardFilters = function() {
   if (dashFilterClass) dashFilterClass.value = 'all';
   if (dashFilterPrep) dashFilterPrep.value = 'all';
   if (dashFilterPeriod) dashFilterPeriod.value = 'all';
-  applyDashboardFilters();
+  applyDashboardFilters(true);
 };
 
 window.filterAndNavStudents = function(filterVal) {
@@ -6886,9 +7015,13 @@ function populateStudentDossier(student) {
   }
 }
 
-// Event listeners for students search & filter
+// Event listeners for students search & filter (Smoothly debounced)
+let _studentSearchDebounceTimer = null;
 if (studentSearchInput) {
-  studentSearchInput.addEventListener('input', renderStudentsDirectoryTable);
+  studentSearchInput.addEventListener('input', () => {
+    if (_studentSearchDebounceTimer) clearTimeout(_studentSearchDebounceTimer);
+    _studentSearchDebounceTimer = setTimeout(renderStudentsDirectoryTable, 100);
+  });
 }
 if (studentFilterSelect) {
   studentFilterSelect.addEventListener('change', renderStudentsDirectoryTable);

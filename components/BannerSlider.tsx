@@ -144,6 +144,7 @@ export default function BannerSlider() {
 
   const totalSlides = banners.length;
   const safeCurrentIndex = totalSlides > 0 ? (currentIndex % totalSlides + totalSlides) % totalSlides : 0;
+  const activeBanner = banners[safeCurrentIndex] || banners[0];
 
   // Safe slide navigation
   const nextSlide = useCallback(() => {
@@ -196,139 +197,186 @@ export default function BannerSlider() {
   return (
     <section 
       id="hero-banner-section" 
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-4"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2"
       aria-label="Promotional Banners"
     >
+      {/* 1. Main 16:9 Banner Visual Frame */}
       <div 
-        className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-slate-200 group select-none bg-slate-900"
+        className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden shadow-md border border-slate-200 bg-slate-950 group select-none"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* 16:9 Aspect Ratio Container */}
-        <div className="relative w-full aspect-[16/9] min-h-[380px] sm:min-h-[420px] md:min-h-[460px]">
-          {banners.map((banner, index) => {
-            const isActive = index === safeCurrentIndex;
+        {banners.map((banner, index) => {
+          const isActive = index === safeCurrentIndex;
 
-            return (
-              <div
-                key={banner.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-between p-6 sm:p-10 md:p-14 bg-gradient-to-br ${
-                  banner.bgGradient || "from-slate-950 via-indigo-950 to-slate-900"
-                } ${
-                  isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
-                }`}
-                style={
-                  banner.imageUrl
-                    ? {
-                        backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.94) 30%, rgba(15, 23, 42, 0.82) 70%, rgba(15, 23, 42, 0.7) 100%), url(${banner.imageUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }
-                    : undefined
-                }
-              >
-                {/* Background Geometric Decor (if no custom image) */}
-                {!banner.imageUrl && (
-                  <div className="absolute right-0 top-0 w-1/2 h-full opacity-10 pointer-events-none overflow-hidden flex items-center justify-center">
-                    <span className="font-serif text-[280px] sm:text-[380px] font-bold text-white select-none leading-none">
+          return (
+            <div
+              key={banner.id}
+              className={`absolute inset-0 transition-opacity duration-600 ease-in-out ${
+                isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+              }`}
+            >
+              {banner.imageUrl ? (
+                <a
+                  href={banner.buttonLink || "#classes-section"}
+                  className="block w-full h-full relative"
+                  title={banner.title}
+                >
+                  <img
+                    src={banner.imageUrl}
+                    alt={banner.title}
+                    className="w-full h-full object-cover"
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
+                </a>
+              ) : (
+                /* Sleek fallback mathematical gradient banner */
+                <div 
+                  className={`w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-br ${
+                    banner.bgGradient || "from-slate-950 via-indigo-950 to-slate-900"
+                  } relative overflow-hidden`}
+                >
+                  <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden flex items-center justify-center">
+                    <span className="font-serif text-[180px] sm:text-[260px] md:text-[340px] font-bold text-white select-none leading-none">
                       ∫
                     </span>
                   </div>
-                )}
-
-                {/* Content Area */}
-                <div className="relative z-10 max-w-2xl flex flex-col justify-center h-full">
-                  <div className="flex flex-wrap items-center gap-2.5 mb-3 sm:mb-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm ${
-                      banner.tagColor || "bg-amber-100 text-amber-900 border-amber-300"
-                    }`}>
+                  <div className="relative z-10 max-w-xl">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 mb-3">
                       <Sparkles className="w-3.5 h-3.5" />
                       {banner.tag || "Prayatna Mathematics"}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/10 text-slate-200 border border-white/15 backdrop-blur-sm">
-                      <Zap className="w-3 h-3 text-amber-300" />
-                      Order #{banner.order}
-                    </span>
-                  </div>
-
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight sm:leading-tight mb-3">
-                    {banner.title}
-                  </h2>
-
-                  <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed mb-6 line-clamp-2 sm:line-clamp-3 max-w-xl">
-                    {banner.description}
-                  </p>
-
-                  {/* CTA Actions */}
-                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                    <a
-                      href={banner.buttonLink || "#classes-section"}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-400/20 transition-all hover:gap-3"
-                    >
-                      <span>{banner.buttonText || "Explore Batches"}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-
-                    {banner.phone && (
-                      <a
-                        href={`tel:${banner.phone.replace(/[^0-9+]/g, '')}`}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl bg-white/15 hover:bg-white/25 active:bg-white/30 text-white font-semibold text-sm border border-white/20 backdrop-blur-sm transition-all"
-                        title={`Call ${banner.phone}`}
-                      >
-                        <PhoneCall className="w-4 h-4 text-emerald-400" />
-                        <span>Call {banner.phone}</span>
-                      </a>
-                    )}
+                    <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                      {banner.title}
+                    </h2>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              )}
+            </div>
+          );
+        })}
 
-        {/* Navigation Prev/Next Arrows (only if more than 1 banner) */}
+        {/* Overlay Prev / Next Controls on 16:9 Banner */}
         {totalSlides > 1 && (
           <>
             <button
               id="banner-prev-btn"
               onClick={prevSlide}
               aria-label="Previous Banner"
-              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center border border-white/20 transition-all opacity-80 group-hover:opacity-100 hover:scale-105"
+              className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center border border-white/25 transition-all opacity-80 group-hover:opacity-100 hover:scale-105"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             <button
               id="banner-next-btn"
               onClick={nextSlide}
               aria-label="Next Banner"
-              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center border border-white/20 transition-all opacity-80 group-hover:opacity-100 hover:scale-105"
+              className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md flex items-center justify-center border border-white/25 transition-all opacity-80 group-hover:opacity-100 hover:scale-105"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
-
-            {/* Navigation Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10">
-              {banners.map((b, index) => (
-                <button
-                  key={b.id}
-                  id={`banner-dot-${index}`}
-                  onClick={() => setCurrentIndex(index)}
-                  aria-label={`Go to slide ${index + 1}`}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === safeCurrentIndex 
-                      ? "w-6 h-2 bg-amber-400" 
-                      : "w-2 h-2 bg-white/50 hover:bg-white/80"
-                  }`}
-                />
-              ))}
-            </div>
           </>
         )}
       </div>
+
+      {/* 2. Text Below the Banners (Properly visible, readable & well-aligned) */}
+      {activeBanner && (
+        <div className="mt-3 sm:mt-4 p-4 sm:p-5 md:p-6 bg-white rounded-2xl border border-slate-200 shadow-sm transition-all duration-300">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Left Content Area */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-xs ${
+                  activeBanner.tagColor || "bg-amber-100 text-amber-900 border-amber-300"
+                }`}>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {activeBanner.tag || "Academic Program"}
+                </span>
+
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  <Zap className="w-3 h-3 text-amber-500" />
+                  Slide {safeCurrentIndex + 1} of {totalSlides}
+                </span>
+              </div>
+
+              <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                {activeBanner.title}
+              </h2>
+
+              {activeBanner.description && (
+                <p className="mt-1.5 text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed max-w-3xl">
+                  {activeBanner.description}
+                </p>
+              )}
+            </div>
+
+            {/* Right Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+              <a
+                href={activeBanner.buttonLink || "#classes-section"}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs sm:text-sm shadow-sm transition-all hover:gap-2.5"
+              >
+                <span>{activeBanner.buttonText || "Explore Batches"}</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+
+              {activeBanner.phone && (
+                <a
+                  href={`tel:${activeBanner.phone.replace(/[^0-9+]/g, '')}`}
+                  className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-200 font-semibold text-xs sm:text-sm transition-colors"
+                  title={`Call ${activeBanner.phone}`}
+                >
+                  <PhoneCall className="w-4 h-4 text-emerald-600" />
+                  <span>Call {activeBanner.phone}</span>
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Dots Pagination & Slide Counter Bar */}
+          {totalSlides > 1 && (
+            <div className="mt-3 sm:mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {banners.map((b, idx) => (
+                  <button
+                    key={b.id}
+                    id={`banner-dot-${idx}`}
+                    onClick={() => setCurrentIndex(idx)}
+                    aria-label={`Go to slide ${idx + 1}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      idx === safeCurrentIndex 
+                        ? "w-6 sm:w-8 bg-indigo-600" 
+                        : "w-2 bg-slate-200 hover:bg-slate-300"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <button
+                  onClick={prevSlide}
+                  className="p-1 rounded-md hover:bg-slate-100 text-slate-600 transition-colors"
+                  aria-label="Previous Slide"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span>{safeCurrentIndex + 1} / {totalSlides}</span>
+                <button
+                  onClick={nextSlide}
+                  className="p-1 rounded-md hover:bg-slate-100 text-slate-600 transition-colors"
+                  aria-label="Next Slide"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
