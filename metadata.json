@@ -1,0 +1,6 @@
+{
+  "name": "Prayatna Mathematics",
+  "description": "Premier coaching platform for Class 11 & 12 Board and JEE Mathematics preparation featuring interactive test engine, daily practice problems, and study resources.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

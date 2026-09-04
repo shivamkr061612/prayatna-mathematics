@@ -1,0 +1,93 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      ".read": "auth != null",
+      ".indexOn": ["role", "class", "preparation", "createdAt", "email"],
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')",
+        ".validate": "newData.hasChildren(['uid', 'email']) && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com' || (data.exists() ? (newData.child('role').val() === data.child('role').val()) : (newData.child('role').val() === 'student')))"
+      }
+    },
+
+    "banners": {
+      ".read": true,
+      ".indexOn": ["active", "order", "createdAt"],
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+    },
+
+    "books": {
+      ".read": "auth != null",
+      ".indexOn": ["class", "preparation", "active", "createdAt"],
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+    },
+
+    "homework": {
+      ".read": "auth != null",
+      ".indexOn": ["class", "preparation", "createdAt", "deadline"],
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+    },
+
+    "homeworkProgress": {
+      ".read": "auth != null",
+      "$homeworkId": {
+        ".read": "auth != null",
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')",
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+        }
+      }
+    },
+
+    "tests": {
+      ".read": "auth != null",
+      ".indexOn": ["class", "preparation", "active", "createdAt"],
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+    },
+
+    "testAttempts": {
+      ".read": "auth != null",
+      "$testId": {
+        ".read": "auth != null",
+        ".indexOn": ["userId", "submittedAt", "percentage", "score"],
+        "$uid": {
+          ".read": "auth != null",
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com' || (auth.uid === $uid && (!data.exists() || root.child('tests').child($testId).child('allowMultipleAttempts').val() === true)))"
+        }
+      }
+    },
+
+    "attendance": {
+      ".read": "auth != null",
+      ".indexOn": ["class", "date", "timestamp"],
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+    },
+
+    "streaks": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+      }
+    },
+
+    "xp": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+      }
+    },
+
+    "achievements": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth.token.email === 'techshivam0616@gmail.com' || auth.token.email === 'admin@prayatna.com')"
+      }
+    }
+  }
+}

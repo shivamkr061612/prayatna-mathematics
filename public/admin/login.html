@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Access Code — Prayatna Mathematics</title>
+  <link rel="stylesheet" href="admin.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #0f172a;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    }
+    .login-card {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      max-width: 420px;
+      width: 100%;
+      padding: 38px 32px;
+      text-align: center;
+    }
+    .logo-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), #1e1b4b);
+      color: #fbbf24;
+      font-family: Georgia, serif;
+      font-size: 30px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
+    }
+    .input-wrapper {
+      position: relative;
+      margin: 24px 0 16px;
+    }
+    .code-input {
+      width: 100%;
+      padding: 14px 46px 14px 18px;
+      font-size: 22px;
+      letter-spacing: 6px;
+      text-align: center;
+      font-weight: 800;
+      border: 2px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      outline: none;
+      background: var(--slate-50);
+      color: var(--slate-900);
+      transition: all 0.2s;
+      box-sizing: border-box;
+      font-family: monospace, sans-serif;
+    }
+    .code-input:focus {
+      background: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.15);
+    }
+    .toggle-visibility-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--slate-400);
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .toggle-visibility-btn:hover {
+      color: var(--slate-700);
+      background: var(--slate-100);
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.15s, transform 0.1s;
+    }
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+    .btn-submit:active {
+      transform: scale(0.99);
+    }
+    .error-box {
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      text-align: left;
+    }
+    .success-box {
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      background-color: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+      font-weight: 600;
+    }
+    .hint-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+      
+      <!-- Brand Logo -->
+      <div class="logo-badge" style="padding: 3px; overflow: hidden; background: #fff; border: 1px solid #e2e8f0; border-radius: 50%;">
+        <img src="/logo.svg" alt="Prayatna Logo" style="width: 100%; height: 100%; object-fit: contain;" />
+      </div>
+      
+      <h1 style="font-size: 22px; font-weight: 800; color: var(--slate-900);">Admin Portal</h1>
+      <p style="font-size: 13.5px; color: var(--slate-500); margin-top: 6px; line-height: 1.5;">
+        Enter master access code to unlock administration panel
+      </p>
+
+      <!-- Feedback Messages -->
+      <div id="login-error-msg" class="error-box"></div>
+      <div id="login-success-msg" class="success-box"></div>
+
+      <!-- Access Code Form -->
+      <form id="admin-passcode-form" onsubmit="handlePasscodeSubmit(event)">
+        <div class="input-wrapper">
+          <input 
+            type="password" 
+            id="admin-code-input" 
+            class="code-input" 
+            required 
+            autofocus
+            maxlength="10"
+            placeholder="••••••"
+            autocomplete="off"
+          />
+          <button type="button" id="toggle-code-btn" class="toggle-visibility-btn" title="Show/Hide Code" onclick="toggleCodeVisibility()">
+            <i data-lucide="eye" id="toggle-eye-icon" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="btn-submit">
+          <span id="btn-text">Enter Admin Panel</span>
+          <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
+        </button>
+      </form>
+
+      <div style="margin-top: 14px;">
+        <span class="hint-chip">
+          <i data-lucide="key" style="width: 13px; height: 13px;"></i>
+          Access Protected by Security Code
+        </span>
+      </div>
+
+      <!-- Back to Student Portal -->
+      <div style="margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--slate-200);">
+        <a href="/" style="font-size: 13px; font-weight: 600; color: var(--slate-600); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+          <span>Return to Student Website</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const REQUIRED_CODE = "061612";
+    const errorBox = document.getElementById('login-error-msg');
+    const successBox = document.getElementById('login-success-msg');
+    const codeInput = document.getElementById('admin-code-input');
+    const btnText = document.getElementById('btn-text');
+    const submitBtn = document.getElementById('login-submit-btn');
+
+    // If already verified, immediately redirect to index.html
+    const existingSession = sessionStorage.getItem('prayatna_admin_passcode_verified') || localStorage.getItem('prayatna_admin_passcode_verified');
+    if (existingSession === REQUIRED_CODE) {
+      window.location.replace('index.html');
+    }
+
+    function toggleCodeVisibility() {
+      const icon = document.getElementById('toggle-eye-icon');
+      if (codeInput.type === 'password') {
+        codeInput.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        codeInput.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = 'block';
+      successBox.style.display = 'none';
+      codeInput.focus();
+      codeInput.select();
+    }
+
+    function handlePasscodeSubmit(event) {
+      if (event) event.preventDefault();
+      errorBox.style.display = 'none';
+
+      const enteredCode = (codeInput.value || '').trim();
+
+      if (!enteredCode) {
+        showError("Please enter the access code.");
+        return;
+      }
+
+      if (enteredCode === REQUIRED_CODE) {
+        // Correct code entered
+        sessionStorage.setItem('prayatna_admin_passcode_verified', REQUIRED_CODE);
+        localStorage.setItem('prayatna_admin_passcode_verified', REQUIRED_CODE);
+
+        successBox.textContent = "Access Code Verified! Entering Admin Dashboard...";
+        successBox.style.display = 'block';
+        submitBtn.disabled = true;
+        btnText.textContent = "Entering Portal...";
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 400);
+      } else {
+        showError("Invalid access code! Please enter the correct code to enter admin panel.");
+      }
+    }
+
+    // Auto-initialize Lucide icons
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
