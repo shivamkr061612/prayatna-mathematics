@@ -1,10 +1,15 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css'; // Global styles
 import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'Prayatna Mathematics - Premier Coaching Platform',
   description: 'Premier coaching platform for Class 11 & 12 Board, JEE, CUET & NDA Mathematics preparation.',
+
+  verification: {
+    google: '-K4r9xIH0kYDPDT_dFg0QOgxfgnT12qgRCgeusw8Wdo',
+  },
+
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -15,12 +20,21 @@ export const metadata: Metadata = {
       { url: '/icon.png', sizes: '192x192' },
     ],
   },
+
   openGraph: {
     title: 'Prayatna Mathematics - Premier Coaching Platform',
     description: 'Premier coaching platform for Class 11 & 12 Board, JEE, CUET & NDA Mathematics preparation.',
     type: 'website',
-    images: [{ url: '/logo.png', width: 512, height: 512, alt: 'Prayatna Mathematics Official Logo' }],
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Prayatna Mathematics Official Logo',
+      },
+    ],
   },
+
   twitter: {
     card: 'summary_large_image',
     title: 'Prayatna Mathematics - Premier Coaching Platform',
@@ -29,7 +43,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
@@ -40,5 +58,3 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     </html>
   );
 }
-
-
